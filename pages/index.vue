@@ -2,7 +2,9 @@
   <v-layout column justify-center align-center>
     <v-flex xs12 sm8>
       <v-card min-width="400">
-        <v-card-title> <h1>Nuxt Чат</h1> </v-card-title>
+        <v-card-title>
+          <h1>Nuxt чат</h1>
+        </v-card-title>
         <v-card-text>
           <v-form ref="form" v-model="valid" lazy-validation>
             <v-text-field
@@ -20,14 +22,9 @@
               required
             ></v-text-field>
 
-            <v-btn
-              :disabled="!valid"
-              color="primary"
-              class="mr-4"
-              @click="submit"
+            <v-btn :disabled="!valid" color="primary" @click="submit"
+              >Войти</v-btn
             >
-              Войти
-            </v-btn>
           </v-form>
         </v-card-text>
       </v-card>
@@ -37,11 +34,10 @@
 
 <script>
 import { mapMutations } from "vuex";
-
 export default {
   layout: "empty",
   head: {
-    title: "Добро пожаловать в Nuxt Chat!",
+    title: "Добро пожаловать в Nuxt чат",
   },
   sockets: {
     connect: function () {
@@ -53,12 +49,11 @@ export default {
     name: "",
     nameRules: [
       (v) => !!v || "Введите имя",
-      (v) => (v && v.length <= 16) || "Имя не должно привышать 16 символов",
+      (v) => (v && v.length <= 16) || "Имя не должно превышать 16 символов",
     ],
     room: "",
     roomRules: [(v) => !!v || "Введите комнату"],
   }),
-
   methods: {
     ...mapMutations(["setUser"]),
     submit() {
@@ -68,8 +63,15 @@ export default {
           room: this.room,
         };
 
-        this.setUser(user);
-        this.$router.push("chat");
+        this.$socket.emit("userJoined", user, (data) => {
+          if (typeof data === "string") {
+            console.error(data);
+          } else {
+            user.id = data.userId;
+            this.setUser(user);
+            this.$router.push("/chat");
+          }
+        });
       }
     },
   },
